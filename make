@@ -3,6 +3,11 @@
 # program to compile assembly program
 # program also work for linking two file
 
+# ASSERTIONS
+# provided file are in the same directory as this file
+# bin contains final executable files
+# obj contains the object files
+
 # check argc
 if [ $# -lt 1 ]
 then
