@@ -1,6 +1,8 @@
+; This is Hello, World! Program
+
 section .data
-    msg db 'Hello, world!', 0xa ; message to print, includes newline character
-    len equ $-msg               ; length of the message
+    sMsg db "Hello, world!", 0xA   ; message to print, includes newline character
+    lMsg equ $-sMsg                ; length of the message
 
 section .text
     global _start
