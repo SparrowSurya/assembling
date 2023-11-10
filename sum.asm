@@ -1,13 +1,16 @@
-; assembly program which takes a number input and prints it
+; ********************************************************************************
+; Program: Prints sum of two numbers taken from user
+; ********************************************************************************
 
 
+; custom libraries
 %include "lib/io.asm"
 %include "lib/cast.asm"
 
 %define BUF_SIZE 32
 
 section .bss
-    buffer resb BUF_SIZE
+    buffer resb BUF_SIZE                    ; used for io opertions
 
 section .data
     sAskNum1 db "Num1: "
@@ -52,11 +55,11 @@ _start:
     mov [sum_size], ecx             ; storing the size of string
 
     mPrintStr sShowNum, lShowNum    ; prompt for sum
-    mov eax, 32
-    sub eax, [sum_size]
-    lea ecx, [buffer+eax]
-    mov edx, sum_size
-    call PrintStr
+    mov eax, BUF_SIZE               ; size of buffer
+    sub eax, [sum_size]             ; offset to start of number
+    lea ecx, [buffer+eax]           ; get address of offset
+    mov edx, sum_size               ; size of sum
+    call PrintStr                   ; print buffer (sum)
     mNewline                        ; newline
 
 exit:                               ; exit

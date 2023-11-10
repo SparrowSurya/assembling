@@ -1,7 +1,10 @@
-; This is Hello, World! Program
+; ********************************************************************************
+; "Hello, World!" Program
+; ********************************************************************************
+
 
 section .data
-    sMsg db "Hello, world!", 0xA   ; message to print, includes newline character
+    sMsg db "Hello, world!", 0xA   ; message with newline character
     lMsg equ $-sMsg                ; length of the message
 
 section .text
