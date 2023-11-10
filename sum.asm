@@ -7,62 +7,68 @@
 %include "lib/io.asm"
 %include "lib/cast.asm"
 
-%define BUF_SIZE 32
+%define BUFFER_SIZE 16
+
 
 section .bss
-    buffer resb BUF_SIZE                    ; used for io opertions
+
+    ; used for io opertions
+    buffer resb BUFFER_SIZE
+
 
 section .data
-    sAskNum1 db "Num1: "
-    lAskNum1 equ $-sAskNum1
 
-    sAskNum2 db "Num2: "
-    lAskNum2 equ $-sAskNum2
+    AskNum1 db "Num1: ", 0
+    len_AskNum1 equ $-AskNum1
 
-    sShowNum db "Sum: "
-    lShowNum equ $-sShowNum
+    AskNum2 db "Num2: ", 0
+    len_AskNum2 equ $-AskNum2
 
-    num1_size dd 0
-    num2_size dd 0
+    ShowNum db "Sum: ", 0
+    len_ShowNum equ $-ShowNum
+
+    chars_num1 dd 0
+    chars_num2 dd 0
+    chars_sum  dd 0
 
     num1 dd 0
     num2 dd 0
-    sum dd 0
-
-    sum_size dd 0
+    sum  dd 0
 
 
 section .text
     global _start
 
+
 _start:
-    mPrintStr sAskNum1, lAskNum1    ; prompt for num1
-    mInputStr buffer, BUF_SIZE      ; read input
-    mov [num1_size], eax            ; store input size
-    mStr2Uint buffer, num1_size     ; convert from ascii arr to uint
-    mov [num1], eax                 ; store the uint value to num1
 
-    mPrintStr sAskNum2, lAskNum2    ; prompt for num2
-    mInputStr buffer, BUF_SIZE      ; read input
-    mov [num2_size], eax            ; store input size
-    mStr2Uint buffer, num2_size     ; convert from ascii arr to uint
-    mov [num2], eax                 ; store the uint value to num2
+    CallPrintStr AskNum1, len_AskNum1          ; prompt for num1
+    CallInputStr buffer, BUFFER_SIZE           ; read input
+    mov [chars_num1], eax                      ; store input size
+    CallStr2Uint buffer, [chars_num1]          ; convert from str to uint
+    mov [num1], eax                            ; store the uint value to num1
 
-    mov eax, [num1]                 ; load num1
-    add eax, [num2]                 ; add num2
-    mov [sum], eax                  ; store result in sum
-    mUint2HexStr buffer, sum        ; convert from uint to hex string
-    mov [sum_size], ecx             ; storing the size of string
+    CallPrintStr AskNum2, len_AskNum2          ; prompt for num2
+    CallInputStr buffer, BUFFER_SIZE           ; read input
+    mov [chars_num2], eax                      ; store input size
+    CallStr2Uint buffer, [chars_num2]          ; convert from str to uint
+    mov [num2], eax                            ; store the uint value to num2
 
-    mPrintStr sShowNum, lShowNum    ; prompt for sum
-    mov eax, BUF_SIZE               ; size of buffer
-    sub eax, [sum_size]             ; offset to start of number
-    lea ecx, [buffer+eax]           ; get address of offset
-    mov edx, sum_size               ; size of sum
-    call PrintStr                   ; print buffer (sum)
-    mNewline                        ; newline
+    mov eax, [num1]                            ; load num1
+    add eax, [num2]                            ; add num2
+    mov [sum], eax                             ; store result in sum
+    CallUint2Str buffer, [sum]                 ; convert from uint to string
+    mov [chars_sum ], ecx                      ; storing the size of string
 
-exit:                               ; exit
+    CallPrintStr ShowNum, len_ShowNum          ; prompt for sum
+    mov eax, BUFFER_SIZE                       ; size of buffer
+    sub eax, [chars_sum]                       ; offset to start of number
+    lea ecx, [buffer+eax]                      ; get address of offset
+    mov edx, chars_sum                         ; size of sum
+    call PrintStr                              ; print buffer (sum)
+    Newline                                    ; newline
+
+exit:
     mov eax, 1
     xor ebx, ebx
     int 0x80

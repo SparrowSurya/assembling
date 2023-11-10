@@ -1,7 +1,14 @@
-;; This file contains subroutine and macro for io
+; ********************************************************************************
+; This file contains subroutine for
+; writing to stdout & sterr and reading from stdin
+; ********************************************************************************
+
 
 section .data
+
+    ; newline character
     endl db 0xA
+
 
 section .text
     global PrintStr
@@ -9,92 +16,115 @@ section .text
     global ErrorStr
 
 
-; ##################################################
-; STDOUT
-; ##################################################
+; ********************************************************************************
+; PrintStr subroutine (STDOUT)
+;
+; Requirement
+; -----------
+;   1. ECX = pointer to buffer in ECX
+;   2. EDX = no of characters to write to stdout
+;
+; Registers used
+; --------------
+;   EAX: file decriptior for stdout
+;   EBX: syscall number for write
+; ********************************************************************************
 
-%macro mPrintStr 2
-    ; 1: buffer/string address
-    ; 2: length of buffer
+PrintStr:
+    mov ebx, 1
+    mov eax, 4
+    int 0x80
+    ret
 
-    lea ecx, [%1]             ; pointer to buffer
-    mov edx, %2               ; size of buffer
+
+; macro for PrintStr
+; 1: buffer address
+; 2: size of buffer (value)
+%macro CallPrintStr 2
+    lea ecx, [%1]
+    mov edx, %2
     call PrintStr
 %endmacro
 
-; size of buffer is already set
-%macro mPrintStr_buf 1
-    ; 1: buffer/string address
 
-    lea ecx, [%1]             ; pointer to buffer
-    call PrintStr
-%endmacro
-
-%macro mNewline 0
+; macro for printing newline
+%macro Newline 0
     mov edx, 1
     mov ecx, endl
     call PrintStr
 %endmacro
 
-PrintStr:
-    mov ebx, 1                ; file descriptor for stdout
-    mov eax, 4                ; syscall for write
-    int 0x80                  ; invoke syscall
-    ret
 
-
-; ##################################################
-; STDIN
-; ##################################################
-
-%macro mInputStr 2
-    ; 1: buffer address
-    ; 2: no bytes to read
-
-    lea ecx, [%1]             ; pointer to buffer
-    mov edx, %2               ; no of bytes to read
-    call InputStr
-%endmacro
-
-; no of bytes to read is already set
-%macro mInputStr_buf 1
-    ; 1: buffer address
-
-    lea ecx, [%1]             ; pointer to buffer
-    call InputStr
-%endmacro
-
+; ********************************************************************************
+; InputStr subroutine (STDIN)
+;
+; Requirement
+; -----------
+;   ECX = pointer to address of buffer
+;   EDX = no of bytes to read from stdin
+;
+; Registers used
+; --------------
+;   EAX: syscall number for read
+;   EBX: file descriptior for stdin
+;
+; Result
+; ------
+;   EAX = no of chars entered by user
+;
+; Extra Functionality
+; -------------------
+;   * Ignore the newline character and replaces it with null char
+;   * number of chars entered by user does not includes the newline character
+;
+; Explanation
+; -----------
+;   $ Hello<ENTER>
+;
+;   +--------+------------------+------------------+
+;   |        |     ORIGINAL     |      FINAL       |
+;   +--------+------------------+------------------+
+;   | String |     "Hello\n     |    "Hello\0"     |
+;   +--------+------------------+------------------+
+;   | Length |        6         |        5         |
+;   +--------+------------------+------------------+
+;
+; ********************************************************************************
 
 InputStr:
-    mov ebx, 0                ; file descriptior for stdin
-    mov eax, 3                ; syscall for read
-    int 0x80                  ; invoke syscall
-    dec eax                   ; address of last byte entered (i.e. \n)
-    mov byte [ecx+eax], 0     ; null terminating input (replacing \n with \0)
+    mov ebx, 0
+    mov eax, 3
+    int 0x80
+
+    ; trimming newline character and adjusting length
+    dec eax
+    mov byte [ecx+eax], 0
     ret
 
 
-; ##################################################
-; STDERR
-; ##################################################
-
-%macro mErrorStr 2
-    ; 1: buffer/string address
-    ; 2: size fo buffer/string
-
-    lea ecx, [%1]             ; pointer to buffer
-    mov edx, %2               ; size of buffer
-    call ErrorStr
+; macro for InputStr
+; 1: buffer address
+; 2: no of chars to read (value)
+%macro CallInputStr 2
+    lea ecx, [%1]
+    mov edx, %2
+    call InputStr
 %endmacro
 
-; size of buffer is already set
-%macro mErrorStr_buf 2
-    ; 1: buffer/string address
 
-    lea ecx, [%1]             ; pointer to buffer
-    call ErrorStr
-%endmacro
-
+; ********************************************************************************
+; ErrorStr subroutine (STDERR)
+;
+; Requirement
+; -----------
+;   ECX = pointer to buffer in ECX
+;   EDX = no of characters to write to stderr
+;
+; Registers used
+; --------------
+;   EBX: file decriptior for stderr
+;   EAX: syscall number for write
+; ********************************************************************************
 
 ErrorStr:
     mov ebx, 2                ; file descriptior for stderr
@@ -102,3 +132,12 @@ ErrorStr:
     int 0x80                  ; invoke syscall
     ret
 
+
+; macro for ErrorStr
+; 1: buffer address
+; 2: size of buffer (value)
+%macro CallErrorStr 2
+    lea ecx, [%1]             ; pointer to buffer
+    mov edx, %2               ; size of buffer
+    call ErrorStr
+%endmacro
