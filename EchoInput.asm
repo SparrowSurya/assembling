@@ -1,4 +1,7 @@
-; This program asks for name and prints it out
+; ********************************************************************************
+; This program takes in input and outputs it
+; ********************************************************************************
+
 
 %include "lib/io.asm"
 
